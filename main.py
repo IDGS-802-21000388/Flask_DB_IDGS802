@@ -2,7 +2,7 @@ from flask import Flask, request, render_template, flash, g
 from flask_wtf.csrf import CSRFProtect
 from config import DevelopmentConfig
 import forms
-from models import db
+from models import db, Alumnos
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
@@ -12,9 +12,25 @@ csrf = CSRFProtect()
 def page_not_found(e):
     return render_template('404.html'),404
 
-@app.route('/')
+@app.route('/index', methods=["GET","POST"])
 def index():
-    return render_template('index.html')
+    alum_form = forms.UsersForm2(request.form)
+    if request.method == "POST" and alum_form.validate():
+        alum = Alumnos(nombre=alum_form.nombre.data,
+                        apaterno=alum_form.apaterno.data,
+                        email=alum_form.email.data)
+        # Insert into alumnos values()
+        db.session.add(alum)
+        db.session.commit()
+    
+    return render_template('index.html', form=alum_form)
+
+@app.route('/ABC_Completo', methods=["GET","POST"])
+def ABCompleto():
+    alum_form = forms.UsersForm2(request.form)
+    alumno = Alumnos.query.all()
+
+    return render_template("/ABC_Completo.html", alumno=alumno)
 
 @app.route('/alumnos', methods=["GET","POST"])
 def alumnos():
